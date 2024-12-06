@@ -41,7 +41,9 @@ def get_cluster_deltasigma() -> ClusterDeltaSigma:
     hmf = ccl.halos.MassFuncTinker08(mass_def="200c")
     min_mass, max_mass = 13.0, 16.0
     min_z, max_z = 0.2, 0.8
-    cluster_deltasigma = ClusterDeltaSigma((min_mass, max_mass), (min_z, max_z), hmf, True)
+    cluster_deltasigma = ClusterDeltaSigma(
+        (min_mass, max_mass), (min_z, max_z), hmf, True
+    )
 
     return cluster_deltasigma
 
@@ -52,12 +54,15 @@ def build_likelihood(
     """Builds the likelihood for Firecrown."""
     # Pull params for the likelihood from build_parameters
     average_on = ClusterProperty.NONE
+    if build_parameters.get_bool("use_cluster_counts", True):
+        average_on |= ClusterProperty.COUNTS
     if build_parameters.get_bool("use_mean_deltasigma", True):
         average_on |= ClusterProperty.DELTASIGMA
 
     survey_name = "numcosmo_simulated_redshift_richness_deltasigma"
     likelihood = ConstGaussian(
-        [ BinnedClusterNumberCounts(
+        [
+            BinnedClusterNumberCounts(
                 average_on, survey_name, MurataBinnedSpecZRecipe()
             ),
             BinnedClusterDeltaSigma(
@@ -70,7 +75,7 @@ def build_likelihood(
     sacc_file_nm = "cluster_redshift_richness_deltasigma_sacc_data.fits"
     sacc_path = os.path.expanduser(
         os.path.expandvars(
-            "/pbs/home/e/ebarroso/mass_func"
+            "${HOME}/mass_func/"
         )
     )
     sacc_data = sacc.Sacc.load_fits(os.path.join(sacc_path, sacc_file_nm))
